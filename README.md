@@ -9,6 +9,7 @@ Este repositorio contiene archivos originalmente creados por la **Open Networkin
 ### **hosts.ini**
 Archivo de inventario Ansible.  
 Incluye la información específica del mini PC (dirección IP y parámetros necesarios) para definirlo como host del core 5G.
+Segun se este o no utilizando la vpn se pondra una ip u otra.
 
 ### **main.yml**
 Playbook principal utilizado para gestionar la configuración del entorno del gNB.  
