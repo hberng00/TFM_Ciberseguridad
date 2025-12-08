@@ -55,7 +55,7 @@ omec-control-plane:
     sctplb:
       deploy: false # If enabled then deploy sctp pod
       ngapp:
-        externalIp: {{ core.amf.ip }}
+        externalIp: {{ core.amf.ip }} #SI ocurriese conflicto al aplicar la VPN aqui se podria directamente la ip de la interfaz tun en vez de usar la variable.
         port: 38412
 
     upfadapter:
