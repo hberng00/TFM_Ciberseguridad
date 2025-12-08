@@ -1,0 +1,383 @@
+# netpol.yaml
+# Aplica en: namespace aether-5gc
+# kubectl apply -f netpol.yaml
+---
+# ================================
+# Base: Denegar todo el Ingress
+# ================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: aether-5gc
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+
+---
+# ==========================================
+# gNB -> AMF (N2 / NGAP - SCTP 38412)
+# ==========================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-amf-ingress-from-gnb
+  namespace: aether-5gc
+spec:
+  podSelector:
+    matchLabels:
+      app: amf
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - ipBlock:
+            cidr: ip_gnb/32        # <-- ajusta (IP del gNB)
+        - ipBlock:
+            cidr: ip_ue_range      # <-- ajusta (rango UE)
+      ports:
+        - protocol: SCTP
+          port: 38412
+
+---
+# =========================
+# AMF <- SMF / PCF
+# =========================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-amf-ingress
+  namespace: aether-5gc
+spec:
+  podSelector:
+    matchLabels:
+      app: amf
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: smf
+    - from:
+        - podSelector:
+            matchLabels:
+              app: pcf
+
+---
+# =========================
+# SMF <- AMF / PCF / UPF
+# =========================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-smf-ingress
+  namespace: aether-5gc
+spec:
+  podSelector:
+    matchLabels:
+      app: smf
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: amf
+        - podSelector:
+            matchLabels:
+              app: pcf
+        - podSelector:
+            matchLabels:
+              app: upf
+
+---
+# =========================
+# AUSF <- AMF
+# =========================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ausf-ingress
+  namespace: aether-5gc
+spec:
+  podSelector:
+    matchLabels:
+      app: ausf
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: amf
+
+---
+# =========================
+# UDM <- AMF / AUSF / SMF
+# =========================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-udm-ingress
+  namespace: aether-5gc
+spec:
+  podSelector:
+    matchLabels:
+      app: udm
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: amf
+        - podSelector:
+            matchLabels:
+              app: ausf
+        - podSelector:
+            matchLabels:
+              app: smf
+
+---
+# ==================================
+# UPF <- SMF (PFCP/8805) / gNB (GTPU/2152)
+# ==================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-upf-ingress
+  namespace: aether-5gc
+spec:
+  podSelector:
+    matchLabels:
+      app: upf
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: smf
+      ports:
+        - protocol: UDP
+          port: 8805
+    - from:
+        - ipBlock:
+            cidr: ip_gnb/32        # <-- ajusta (IP del gNB)
+      ports:
+        - protocol: UDP
+          port: 2152
+
+---
+# =========================
+# PCF <- AMF / SMF
+# =========================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-pcf-ingress
+  namespace: aether-5gc
+spec:
+  podSelector:
+    matchLabels:
+      app: pcf
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: amf
+        - podSelector:
+            matchLabels:
+              app: smf
+
+---
+# =========================
+# NRF <- Todas las NFs
+# =========================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-nrf-ingress
+  namespace: aether-5gc
+spec:
+  podSelector:
+    matchLabels:
+      app: nrf
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: {}
+
+---
+# =========================
+# UDR <- UDM / SMF
+# =========================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-udr-ingress
+  namespace: aether-5gc
+spec:
+  podSelector:
+    matchLabels:
+      app: udr
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: udm
+        - podSelector:
+            matchLabels:
+              app: smf
+
+---
+# =========================
+# NSSF <- AMF / SMF
+# =========================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-nssf-ingress
+  namespace: aether-5gc
+spec:
+  podSelector:
+    matchLabels:
+      app: nssf
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: amf
+        - podSelector:
+            matchLabels:
+              app: smf
+
+---
+# ==========================================================
+# ZooKeeper: SOLO Kafka en 2181/TCP + peers (2888/3888)
+# (según captura)
+# ==========================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-zookeeper-ingress-min
+  namespace: aether-5gc
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: zookeeper
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: kafka
+      ports:
+        - protocol: TCP
+          port: 2181
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: zookeeper
+      ports:
+        - protocol: TCP
+          port: 2888
+        - protocol: TCP
+          port: 3888
+
+---
+# ==========================================================
+# Kafka: SOLO clientes necesarios
+# - metricfunc y simapp en 9092/TCP
+# - brokers entre sí en 9093/TCP
+# (según captura)
+# ==========================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-kafka-ingress-min
+  namespace: aether-5gc
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: kafka
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: { matchLabels: { app: metricfunc } }
+        - podSelector: { matchLabels: { app: simapp } }
+      ports:
+        - protocol: TCP
+          port: 9092
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: kafka
+      ports:
+        - protocol: TCP
+          port: 9093
+
+---
+# ==========================================================
+# MongoDB: SOLO quien lo necesita
+# - UDR en 27017/TCP (base de datos de suscripción)
+# - (opcional) NRF si tu despliegue lo usa como backend (incluido aquí)
+# - Replicación/arbiter entre pods de MongoDB
+# (según captura)
+# ==========================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-mongodb-ingress-min
+  namespace: aether-5gc
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: mongodb
+  policyTypes: [Ingress]
+  ingress:
+    # Clientes estrictos
+    - from:
+        - podSelector: { matchLabels: { app: udr } }
+        - podSelector: { matchLabels: { app: nrf } }   # quita esta línea si NRF no usa MongoDB
+      ports:
+        - protocol: TCP
+          port: 27017
+
+    # Replicación entre miembros + arbiter
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: mongodb
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: arbiter
+      ports:
+        - protocol: TCP
+          port: 27017
+
+---
+# ==========================================================
+# WebUI: SOLO acceso desde tu red LAN (ajusta CIDR).
+# - Sin accesos de pods internos por defecto.
+# (según captura)
+# ==========================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-webui-ingress-lan-only
+  namespace: aether-5gc
+spec:
+  podSelector:
+    matchLabels: { app: webui }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - ipBlock: { cidr: 192.168.1.0/24 }   # AJUSTA a tu LAN/Ingress LB
+      ports:
+        - protocol: TCP
+          port: 80
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 3000
+        - protocol: TCP
+          port: 8080
