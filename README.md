@@ -10,7 +10,7 @@ Este repositorio contiene archivos originalmente creados por la **Open Networkin
 Archivo de inventario Ansible.  
 Incluye la información específica del mini PC (dirección IP y parámetros necesarios) para definirlo como host del core 5G.
 
-### **main-gNB.yml**
+### **main.yml**
 Playbook principal utilizado para gestionar la configuración del entorno del gNB.  
 Se ha modificado para incorporar la interfaz de red y la dirección IP del mini PC.
 
