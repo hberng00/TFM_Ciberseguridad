@@ -31,7 +31,7 @@ core:
         core:   "192.168.250.3"
       ue_ip_pool: "192.168.100.0/24"
   amf:
-    ip: ip_core
+    ip: ip_core # Si utilizamos Open Vpn podriamos la ip de la interfaz tun.
 
 amp:
   roc_models: "deps/amp/roles/roc-load/templates/roc-5g-models.json"
