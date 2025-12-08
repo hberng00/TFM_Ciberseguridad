@@ -31,7 +31,7 @@ spec:
   ingress:
     - from:
         - ipBlock:
-            cidr: ip_gnb/32        # <-- ajusta (IP del gNB)
+            cidr: ip_gnb/32        # <-- sin vpn usariamos la de la interfaz normal con vpn la de tun
         - ipBlock:
             cidr: ip_ue_range      # <-- ajusta (rango UE)
       ports:
@@ -158,7 +158,7 @@ spec:
           port: 8805
     - from:
         - ipBlock:
-            cidr: ip_gnb/32        # <-- ajusta (IP del gNB)
+            cidr: ip_gnb/32        # <-- sin vpn usariamos la de la interfaz normal con vpn la de tun
       ports:
         - protocol: UDP
           port: 2152
@@ -337,7 +337,7 @@ spec:
     # Clientes estrictos
     - from:
         - podSelector: { matchLabels: { app: udr } }
-        - podSelector: { matchLabels: { app: nrf } }   # quita esta línea si NRF no usa MongoDB
+        - podSelector: { matchLabels: { app: nrf } }   
       ports:
         - protocol: TCP
           port: 27017
@@ -371,7 +371,7 @@ spec:
   policyTypes: [Ingress]
   ingress:
     - from:
-        - ipBlock: { cidr: 192.168.1.0/24 }   # AJUSTA a tu LAN/Ingress LB
+        - ipBlock: { cidr: 192.168.1.0/24 }   # LAN del laboratorio.
       ports:
         - protocol: TCP
           port: 80
@@ -381,3 +381,4 @@ spec:
           port: 3000
         - protocol: TCP
           port: 8080
+
