@@ -4,7 +4,7 @@ Este repositorio contiene archivos originalmente creados por la **Open Networkin
 
 ---
 
-##Archivos
+## Archivos
 
 ### **hosts.ini**
 Archivo de inventario Ansible.  
