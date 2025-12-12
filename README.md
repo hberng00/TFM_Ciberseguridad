@@ -1,79 +1,72 @@
 # TFM_Ciberseguridad
 
-Este repositorio contiene archivos originalmente creados p# TFM_Ciberseguridad
-
-Este repositorio contiene una serie de archivos basados en material originalmente creado por la **Open Networking Foundation (ONF)**, los cuales han sido adaptados para ajustarse a los requisitos del laboratorio utilizado en el Trabajo Fin de Máster.  
-A continuación se describen los archivos incluidos y las modificaciones realizadas.
+Este repositorio contiene una serie de archivos basados en material originalmente creado por la **Open Networking Foundation (ONF)** y posteriormente modificados para adaptarse a los requisitos del laboratorio empleado en el Trabajo Fin de Máster.  
+El objetivo es documentar la configuración utilizada para desplegar y asegurar un entorno 5G compuesto por gNB, UE simulado, SD-Core y conexión mediante VPN.
 
 ---
 
-## Archivos incluidos
-
-### hosts.ini
-Archivo de inventario utilizado por Ansible.  
-Incluye la información necesaria para definir el mini PC como host del core 5G, especificando la dirección IP y los parámetros de acceso correspondientes.
-
----
-
-### main.yml
-Playbook principal encargado de configurar el entorno del gNB y de suministrar variables al resto de archivos del core 5G, incluida la dirección IP y la interfaz de red.
-
-Cuando se utiliza la VPN, puede ocurrir un conflicto al aplicar estas variables en ciertos componentes del core, como el AMF.
-
-- **Si no se produce conflicto:**  
-  La IP del AMF se actualiza normalmente desde `main.yml`, asignando la dirección correspondiente a la interfaz utilizada por la VPN.
-
-- **Si se produce conflicto:**  
-  Se mantiene `main.yml` sin cambios y la variable correspondiente deja de utilizarse en el componente afectado.  
-  En su lugar, la IP se fija directamente en el archivo de configuración del core que requiera la modificación.
-
----
-
-### sdcore-5g-values.yaml
-Archivo de configuración para SD-Core.  
-Modificaciones realizadas:
-
-- Desactivación del SCTP Load Balancer.  
-- Ampliación de la configuración del AMF mediante NGAP, adaptada a los requisitos del laboratorio.
-
-En caso de conflicto con la variable proporcionada desde `main.yml`, este archivo puede ser modificado directamente para incluir la dirección IP fija requerida por el AMF.
-
----
-
-### netpol.yaml
-Archivo que define las NetworkPolicies utilizadas para controlar la comunicación entre los distintos pods del core 5G.  
-Establece qué servicios pueden comunicarse entre sí, proporcionando segmentación y mayor control del tráfico interno.
-
----
-
-### README.md
-Documento descriptivo del repositorio y de los archivos incluidos.  
-Esta versión ofrece una explicación clara y coherente del propósito y funcionamiento de cada archivo del proyecto.
-or la **Open Networking Foundation (ONF)** y posteriormente modificados para adaptarse a los requisitos del laboratorio. A continuación se describen los archivos incluidos y las adaptaciones realizadas.
-
----
-
-## Archivos
+## 📁 Archivos incluidos
 
 ### **hosts.ini**
-Archivo de inventario Ansible.  
-Incluye la información específica del mini PC (dirección IP y parámetros necesarios) para definirlo como host del core 5G.
+Archivo de inventario utilizado por Ansible.  
+Define el mini PC como host del core 5G, incluyendo su dirección IP y los parámetros necesarios para establecer la conexión y ejecutar el despliegue automatizado.
+
+---
 
 ### **main.yml**
-Playbook principal utilizado para gestionar la configuración del entorno del gNB.  
-Se ha modificado para incorporar la interfaz de red y la dirección IP del mini PC.
-Según se este o no utilizando la vpn se pondra la ip de la intefaz correspondiente.
+Playbook principal encargado de configurar el entorno del gNB y proporcionar variables al resto de archivos del core 5G, incluida la dirección IP y la interfaz de red.
+
+Cuando se utiliza la VPN, puede producirse un conflicto al aplicar estas variables en ciertos componentes, como el AMF:
+
+- **Sin conflicto:**  
+  La IP del AMF se actualiza desde `main.yml`, asignando la correspondiente a la interfaz VPN.
+
+- **Con conflicto:**  
+  `main.yml` se mantiene sin cambios y la variable problemática se elimina de ese componente.  
+  La IP se fija directamente en el archivo de configuración del core afectado.
+
+---
 
 ### **sdcore-5g-values.yaml**
 Archivo de configuración para SD-Core.  
 Modificaciones realizadas:
+
 - Desactivación del **SCTP Load Balancer**.  
-- Extensión de la configuración del **AMF mediante NGAP**, adaptándolo a las necesidades del laboratorio.
-Cuando se usa la vpn puede dar probelmas por confiltos al poner la ip en main.yml, si fuera asi se modificaria directamente esete archivo para evitar estos y se pondria la ip directamente al amf de la interfaz tun.
+- Ampliación de la configuración del **AMF mediante NGAP**, adaptándola a los requisitos del laboratorio.
+
+En caso de conflicto con la variable IP procedente de `main.yml` (especialmente cuando se usa VPN), este archivo puede modificarse directamente para definir la IP correcta de la interfaz `tun` hacia el AMF.
+
+---
 
 ### **netpol.yaml**
-Archivo que contiene las **NetworkPolicies** empleadas para controlar las comunicaciones entre los distintos pods del core 5G.  
-Define qué servicios pueden comunicarse entre sí para asegurar un mayor control y segmentación del tráfico interno.
+Archivo que contiene las **NetworkPolicies** utilizadas para controlar la comunicación entre los distintos pods del core 5G.  
+Permite segmentar el tráfico e implementar un control más estricto de qué servicios pueden comunicarse entre sí.
+
+---
+
+### **client.conf**
+Archivo de configuración del **cliente OpenVPN**.  
+Incluye los parámetros necesarios para que el gNB o el mini PC se conecten al servidor VPN, como la dirección del servidor, certificados, claves y ajustes de cifrado.
+
+---
+
+### **server.conf**
+Archivo de configuración del **servidor OpenVPN**.  
+Define el funcionamiento del servicio VPN, gestionando las conexiones de los clientes, las direcciones IP virtuales, certificados del servidor y parámetros de seguridad.
+
+---
+
+### **custom-gnb.yaml**
+Archivo de configuración del **gNB personalizado**.  
+Incluye parámetros como la IP del AMF, el PLMN, la interfaz de red y otros ajustes necesarios para conectar el gNB al core 5G, especialmente cuando se utiliza la VPN.
+
+---
+
+### **custom-ue.yaml**
+Archivo de configuración del **UE simulado**.  
+Contiene las credenciales del UE, el PLMN y los parámetros de comportamiento utilizados para las pruebas de registro y conectividad en el entorno 5G.
+
+---
 
 ### **README.md**
 Documento descriptivo del repositorio y de los archivos incluidos.
